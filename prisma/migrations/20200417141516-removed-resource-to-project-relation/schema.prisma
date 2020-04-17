@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = "***"
 }
 
 generator client {
@@ -12,7 +12,7 @@ model Project {
   name        String
   description String?
   tasks       Task[]
-  resources   Resource[] @relation(references: [id])
+  resources   Resource[]
   completed   Boolean    @default(false)
 }
 
@@ -26,8 +26,7 @@ model Task {
 }
 
 model Resource {
-  id          Int       @default(autoincrement()) @id
+  id          Int     @default(autoincrement()) @id
   name        String
   description String?
-  projects    Project[] @relation(references: [id])
 }
