@@ -7,8 +7,8 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.post(`/projects`, async (req, res) => {
-   const result = await prisma.user.create({
+app.post(`/resources`, async (req, res) => {
+   const result = await prisma.resource.create({
       data: {
          ...req.body,
       },
@@ -16,76 +16,59 @@ app.post(`/projects`, async (req, res) => {
    res.json(result);
 });
 
-app.post(`/post`, async (req, res) => {
-   const { title, content, authorEmail } = req.body;
-   const result = await prisma.post.create({
+app.post(`/projects`, async (req, res) => {
+   const result = await prisma.project.create({
       data: {
-         title,
-         content,
-         published: false,
-         author: { connect: { email: authorEmail } },
+         ...req.body,
       },
    });
    res.json(result);
 });
 
-app.put("/publish/:id", async (req, res) => {
+app.post(`/projects/:id/tasks`, async (req, res) => {
    const { id } = req.params;
-   const post = await prisma.post.update({
-      where: { id: Number(id) },
-      data: { published: true },
+   const result = await prisma.task.create({
+      data: {
+         ...req.body,
+         project: {
+            connect: { id: Number(id) },
+         },
+      },
    });
-   res.json(post);
+   res.json(result);
 });
 
-app.delete(`/post/:id`, async (req, res) => {
+app.delete(`/project/:id`, async (req, res) => {
    const { id } = req.params;
-   const post = await prisma.post.delete({
+   const result = await prisma.project.delete({
       where: {
          id: Number(id),
       },
    });
-   res.json(post);
+   res.status(200).json(result);
 });
 
-app.get(`/post/:id`, async (req, res) => {
+app.get(`/projects/:id`, async (req, res) => {
    const { id } = req.params;
-   const post = await prisma.post.findOne({
+   const project = await prisma.project.findOne({
       where: {
          id: Number(id),
       },
+      include: { resources: true, tasks: true },
    });
-   res.json(post);
+   res.status(200).json(project);
 });
 
 app.get("/projects", async (req, res) => {
    const projects = await prisma.project.findMany();
-   res.json(projects);
+   res.status(200).json(projects);
 });
 
-app.get("/filterPosts", async (req, res) => {
-   const { searchString }: { searchString?: string } = req.query;
-   const draftPosts = await prisma.post.findMany({
-      where: {
-         OR: [
-            {
-               title: {
-                  contains: searchString,
-               },
-            },
-            {
-               content: {
-                  contains: searchString,
-               },
-            },
-         ],
-      },
-   });
-   res.json(draftPosts);
+app.get("/resources", async (req, res) => {
+   const resources = await prisma.resource.findMany();
+   res.status(200).json(resources);
 });
 
 const server = app.listen(5000, () =>
-   console.log(
-      "🚀 Server ready at: http://localhost:5000\n⭐️ See sample requests: http://pris.ly/e/ts/rest-express#3-using-the-rest-api"
-   )
+   console.log("🚀 Server ready at: http://localhost:5000\n")
 );
